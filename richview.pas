@@ -122,6 +122,7 @@ type
     jumps: TStringList;
     FStyle: TRVStyle;
     nJmps: Integer;
+    FOldCursor : TCursor;
 
     skipformatting: Boolean;
 
@@ -285,16 +286,39 @@ end;
 
 procedure TRichEdit.Paint;
 var
-  aObj: TDrawLineInfo;
-  aTopObj: TDrawLineInfo;
+  dli: TDrawLineInfo;
+  li: TLineInfo;
+  TopObj: TDrawLineInfo;
+  VOffs: Integer;
+  HOffs: Integer;
+  HinnerOffs: Integer;
+  canv: TCanvas;
+  no: Integer;
 begin
   inherited Paint;
+  canv := Canvas;
   if FCursorVisible then
     begin
       if FSelEndNo<0 then exit;
-      aObj := TDrawLineInfo(DrawLines.Objects[FSelEndNo]);
-      aTopObj := TDrawLineInfo(DrawLines.Objects[GetFirstLineVisible]);
-      Canvas.Rectangle(aObj.Left,aObj.Top-aTopObj.Top,aObj.Left+3,(aObj.Top-aTopObj.Top)+aObj.Height);
+      dli := TDrawLineInfo(DrawLines.Objects[FSelEndNo]);
+      li := TLineInfo(lines.Objects[dli.LineNo]);
+      VOffs := VPos*SmallStep;
+      HOffs := HPos*SmallStep;
+      HinnerOffs := 0;
+      if FSelEndOffs>0 then
+        begin
+          no := li.StyleNo;
+          if no>=0 then begin { text }
+            canv.Font.Style := FStyle.TextStyles[no].Style;
+            canv.Font.Size := FStyle.TextStyles[no].Size;
+            canv.Font.Name := FStyle.TextStyles[no].FontName;
+            {$IFDEF RICHVIEWDEF3}
+            canv.Font.CharSet := FStyle.TextStyles[no].CharSet;
+            {$ENDIF}
+            HinnerOffs := canv.TextExtent(Copy(drawlines.Strings[FSelEndNo], 1, FSelEndOffs-1)).cx;
+          end;
+        end;
+      Canvas.Rectangle(dli.Left+HinnerOffs-HOffs,dli.Top-VOffs,(dli.Left+2+HinnerOffs)-HOffs,(dli.Top-VOffs)+dli.Height);
     end;
 end;
 
@@ -303,6 +327,7 @@ begin
   inherited Create(AOwner);
   FCursorTimer:=TTimer.Create(Self);
   FCursorTimer.OnTimer:=FCursorTimerTimer;
+  if csDesigning in ComponentState then FCursorTimer.Enabled:=False;
 end;
 
 destructor TRichEdit.Destroy;
@@ -363,6 +388,7 @@ begin
   FAllowSelection:= True;
   LastLineFormatted := -1;
   ScrollTimer    := nil;
+  FOldCursor:=crIBeam;
   //Format_(False,0, Canvas, False);
 end;
 {-------------------------------------}
@@ -1393,14 +1419,14 @@ begin
       FselEndOffs    := offs;
       Invalidate;
     end;
-    OldCur := Cursor;
     for i:=0 to jumps.Count-1 do
       if (X>=TJumpInfo(jumps.objects[i]).l-HPos) and
          (X<=TJumpInfo(jumps.objects[i]).l+TJumpInfo(jumps.objects[i]).w-HPos) and
          (Y>=TJumpInfo(jumps.objects[i]).t-VPos*SmallStep) and
          (Y<=TJumpInfo(jumps.objects[i]).t+TJumpInfo(jumps.objects[i]).h-VPos*SmallStep) then
        begin
-         Cursor :=  FStyle.JumpCursor;
+         FOldCursor := Cursor;
+         SetCursor(crHandPoint);
          if Assigned(FOnRVMouseMove) and
             (LastJumpMovedAbove<>TJumpInfo(jumps.objects[i]).id) then begin
             OnRVMouseMove(Self,TJumpInfo(jumps.objects[i]).id+FirstJumpNo);
@@ -1416,8 +1442,11 @@ begin
            InvalidateJumpRect(LastJumpMovedAbove);
          end;
          exit;
-       end;
-   Cursor :=  OldCur;
+       end
+    else
+      begin
+        Cursor := crIBeam;
+      end;
    if DrawHover and (LastJumpMovedAbove<>-1) then begin
      DrawHover := False;
      InvalidateJumpRect(LastJumpMovedAbove);
