@@ -239,6 +239,21 @@ type
     property SingleClick: Boolean read FSingleClick write FSingleClick;
   end;
 
+
+  TRichEdit = class(TRichView)
+    procedure FCursorTimerTimer(Sender: TObject);
+  private
+    FCursorTimer : TTimer;
+    FCursorVisible : Boolean;
+  protected
+    procedure Paint; override;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    property Cursor default crIBeam;
+  end;
+
+
 procedure InfoAboutSaD(var sad:TScreenAndDevice; Canvas: TCanvas);
 
 implementation
@@ -261,6 +276,41 @@ begin
   sad.ppiyScreen := GetDeviceCaps(screenDC, LOGPIXELSY);
   DeleteDC(screenDC);
 end;
+
+procedure TRichEdit.FCursorTimerTimer(Sender: TObject);
+begin
+  FCursorVisible:=not FCursorVisible;
+  Repaint;
+end;
+
+procedure TRichEdit.Paint;
+var
+  aObj: TDrawLineInfo;
+  aTopObj: TDrawLineInfo;
+begin
+  inherited Paint;
+  if FCursorVisible then
+    begin
+      if FSelEndNo<0 then exit;
+      aObj := TDrawLineInfo(DrawLines.Objects[FSelEndNo]);
+      aTopObj := TDrawLineInfo(DrawLines.Objects[GetFirstLineVisible]);
+      Canvas.Rectangle(aObj.Left,aObj.Top-aTopObj.Top,aObj.Left+3,(aObj.Top-aTopObj.Top)+aObj.Height);
+    end;
+end;
+
+constructor TRichEdit.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FCursorTimer:=TTimer.Create(Self);
+  FCursorTimer.OnTimer:=FCursorTimerTimer;
+end;
+
+destructor TRichEdit.Destroy;
+begin
+  FreeAndNil(FCursorTimer);
+  inherited Destroy;
+end;
+
 {$ELSE}
 {-------------------------------------}
 procedure InfoAboutSaD(var sad:TScreenAndDevice; Canvas: TCanvas);
@@ -1324,6 +1374,7 @@ end;
   {------------------------------------------------------------------}
 procedure TRichView.MouseMove(Shift: TShiftState; X, Y: Integer);
 var i, no, offs,ys: Integer;
+  OldCur: TCursor;
 begin
     ScrollDelta := 0;
     if Y<0 then ScrollDelta := -1;
@@ -1342,6 +1393,7 @@ begin
       FselEndOffs    := offs;
       Invalidate;
     end;
+    OldCur := Cursor;
     for i:=0 to jumps.Count-1 do
       if (X>=TJumpInfo(jumps.objects[i]).l-HPos) and
          (X<=TJumpInfo(jumps.objects[i]).l+TJumpInfo(jumps.objects[i]).w-HPos) and
@@ -1365,7 +1417,7 @@ begin
          end;
          exit;
        end;
-   Cursor :=  crDefault;
+   Cursor :=  OldCur;
    if DrawHover and (LastJumpMovedAbove<>-1) then begin
      DrawHover := False;
      InvalidateJumpRect(LastJumpMovedAbove);

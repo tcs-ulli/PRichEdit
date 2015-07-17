@@ -1,15 +1,15 @@
 object Form1: TForm1
   Left = 309
-  Height = 300
+  Height = 515
   Top = 274
-  Width = 435
+  Width = 740
   HorzScrollBar.Page = 434
   VertScrollBar.Increment = 12
   VertScrollBar.Page = 299
   ActiveControl = RichView1
   Caption = 'TRichView, TRVStyle and TRVPrint'
-  ClientHeight = 300
-  ClientWidth = 435
+  ClientHeight = 515
+  ClientWidth = 740
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
@@ -170,16 +170,16 @@ object Form1: TForm1
   object StatusBar1: TStatusBar
     Left = 0
     Height = 23
-    Top = 277
-    Width = 435
+    Top = 492
+    Width = 740
     Panels = <>
     SimplePanel = False
   end
-  object RichView1: TRichView
+  object RichView1: TRichEdit
     Left = 0
-    Height = 277
+    Height = 492
     Top = 0
-    Width = 435
+    Width = 740
     TabStop = True
     TabOrder = 0
     Align = alClient
@@ -1111,8 +1111,8 @@ object Form1: TForm1
   end
   object ImageList1: TImageList
     Height = 15
-    left = 273
-    top = 165
+    left = 176
+    top = 168
     Bitmap = {
       4C6903000000100000000F000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1214,15 +1214,15 @@ object Form1: TForm1
     BottomMarginMM = 20
     OnFormatting = RVPrint1Formatting
     OnSendingToPrinter = RVPrint1SendingToPrinter
-    left = 273
-    top = 225
+    left = 200
+    top = 232
   end
   object SaveDialog1: TSaveDialog
     Title = 'Save file as'
     FilterIndex = 0
     Options = [ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofNoReadOnlyReturn]
-    left = 270
-    top = 260
+    left = 208
+    top = 280
   end
   object PopupMenu1: TPopupMenu
     left = 48

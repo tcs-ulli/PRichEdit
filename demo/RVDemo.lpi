@@ -42,7 +42,7 @@
         <Filename Value="RVDemo.lpr"/>
         <IsPartOfProject Value="True"/>
         <CursorPos X="15" Y="5"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="30"/>
       </Unit0>
       <Unit1>
         <Filename Value="Unit1.pas"/>
@@ -51,9 +51,9 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
-        <TopLine Value="185"/>
-        <CursorPos X="6" Y="197"/>
-        <UsageCount Value="24"/>
+        <TopLine Value="59"/>
+        <CursorPos X="14" Y="929"/>
+        <UsageCount Value="30"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit1>
@@ -64,9 +64,9 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="BackStyl"/>
-        <EditorIndex Value="5"/>
-        <CursorPos X="20"/>
-        <UsageCount Value="24"/>
+        <EditorIndex Value="3"/>
+        <CursorPos X="26" Y="22"/>
+        <UsageCount Value="30"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit2>
@@ -77,9 +77,9 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="PrintFrm"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="2"/>
         <CursorPos X="20"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="30"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit3>
@@ -88,11 +88,21 @@
   <CompilerOptions>
     <Version Value="11"/>
     <PathDelim Value="\"/>
+    <SearchPaths>
+      <UnitOutputDirectory Value="lib"/>
+    </SearchPaths>
     <Parsing>
       <SyntaxOptions>
         <UseAnsiStrings Value="False"/>
       </SyntaxOptions>
     </Parsing>
+    <Linking>
+      <Options>
+        <Win32>
+          <GraphicApplication Value="True"/>
+        </Win32>
+      </Options>
+    </Linking>
   </CompilerOptions>
   <Debugging>
     <Watches Count="5">

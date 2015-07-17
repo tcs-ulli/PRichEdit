@@ -1,11 +1,11 @@
 { This is an automatically generated lazarus resource file }
 
 LazarusResources.Add('TForm1','FORMDATA',[
-  'TPF0'#6'TForm1'#5'Form1'#4'Left'#3'5'#1#6'Height'#3','#1#3'Top'#3#18#1#5'Wid'
-  +'th'#3#179#1#18'HorzScrollBar.Page'#3#178#1#23'VertScrollBar.Increment'#2#12
+  'TPF0'#6'TForm1'#5'Form1'#4'Left'#3'5'#1#6'Height'#3#3#2#3'Top'#3#18#1#5'Widt'
+  +'h'#3#228#2#18'HorzScrollBar.Page'#3#178#1#23'VertScrollBar.Increment'#2#12
   +#18'VertScrollBar.Page'#3'+'#1#13'ActiveControl'#7#9'RichView1'#7'Caption'#6
-  +' TRichView, TRVStyle and TRVPrint'#12'ClientHeight'#3','#1#11'ClientWidth'#3
-  +#179#1#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#8'OnCreate'#7
+  +' TRichView, TRVStyle and TRVPrint'#12'ClientHeight'#3#3#2#11'ClientWidth'#3
+  +#228#2#11'Font.Height'#2#245#9'Font.Name'#6#13'MS Sans Serif'#8'OnCreate'#7
   +#10'FormCreate'#10'LCLVersion'#6#3'1.5'#0#6'TImage'#6'Image1'#4'Left'#3'D'#1
   +#6'Height'#2#24#4'Hint'#6#9'TRichView'#3'Top'#2#20#5'Width'#2#24#8'AutoSize'
   +#9#12'Picture.Data'#10#162#1#0#0#7'TBitmap'#150#1#0#0'BM'#150#1#0#0#0#0#0#0
@@ -132,9 +132,9 @@ LazarusResources.Add('TForm1','FORMDATA',[
   ,#187#176#240'www'#15#240#240#240#187#187#187#176#240'www'#15#255#0#240#187
   +#187#187#176#240'www'#15#255#0#240#0#0#0#0#240'www'#15#255#255#255#255#255
   +#255#255#240'www'#0#0#0#0#0#0#0#0#0'wwwwwwwwwwwwwwwwwwwwwwwwww'#0#0#10'TStat'
-  +'usBar'#10'StatusBar1'#4'Left'#2#0#6'Height'#2#23#3'Top'#3#21#1#5'Width'#3
-  +#179#1#6'Panels'#14#0#11'SimplePanel'#8#0#0#9'TRichView'#9'RichView1'#4'Left'
-  +#2#0#6'Height'#3#21#1#3'Top'#2#0#5'Width'#3#179#1#7'TabStop'#9#8'TabOrder'#2
+  +'usBar'#10'StatusBar1'#4'Left'#2#0#6'Height'#2#23#3'Top'#3#236#1#5'Width'#3
+  +#228#2#6'Panels'#14#0#11'SimplePanel'#8#0#0#9'TRichEdit'#9'RichView1'#4'Left'
+  +#2#0#6'Height'#3#236#1#3'Top'#2#0#5'Width'#3#228#2#7'TabStop'#9#8'TabOrder'#2
   +#0#5'Align'#7#8'alClient'#8'Tracking'#9#14'VScrollVisible'#9#11'FirstJumpNo'
   +#2#0#6'OnJump'#7#13'RichView1Jump'#13'OnRVMouseMove'#7#20'RichView1RVMouseMo'
   +'ve'#21'OnSaveComponentToFile'#7#28'RichView1SaveComponentToFile'#11'OnURLNe'
@@ -914,10 +914,10 @@ LazarusResources.Add('TForm1','FORMDATA',[
   +'umpCursor'#7#11'crHandPoint'#5'Color'#7#7'clWhite'#10'HoverColor'#7#6'clNon'
   +'e'#10'FullRedraw'#8#8'SelColor'#7#11'clHighlight'#12'SelTextColor'#7#15'clH'
   +'ighlightText'#4'left'#3')'#1#3'top'#3#194#0#0#0#10'TImageList'#10'ImageList'
-  +'1'#6'Height'#2#15#4'left'#3#17#1#3'top'#3#165#0#6'Bitmap'#10'N'#11#0#0'Li'#3
-  +#0#0#0#16#0#0#0#15#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
+  +'1'#6'Height'#2#15#4'left'#3#176#0#3'top'#3#168#0#6'Bitmap'#10'N'#11#0#0'Li'
+  +#3#0#0#0#16#0#0#0#15#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
   +#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
-  +#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#148'g'#255#255#148
+  +#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#148'g'#255#255#148
   +'g'#255#255#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0
   +#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#148'g'#255#255#0#0#0#0#148'g'
   +#255#255#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#0#148'g'#255
@@ -1008,12 +1008,12 @@ LazarusResources.Add('TForm1','FORMDATA',[
   +#255#255#0#0#0#0#0#0#8'TRVPrint'#8'RVPrint1'#12'LeftMarginMM'#2#20#13'RightM'
   +'arginMM'#2#20#11'TopMarginMM'#2#20#14'BottomMarginMM'#2#20#12'OnFormatting'
   +#7#18'RVPrint1Formatting'#18'OnSendingToPrinter'#7#24'RVPrint1SendingToPrint'
-  +'er'#4'left'#3#17#1#3'top'#3#225#0#0#0#11'TSaveDialog'#11'SaveDialog1'#5'Tit'
-  +'le'#6#12'Save file as'#11'FilterIndex'#2#0#7'Options'#11#17'ofOverwriteProm'
-  +'pt'#14'ofHideReadOnly'#15'ofPathMustExist'#18'ofNoReadOnlyReturn'#0#4'left'
-  +#3#14#1#3'top'#3#4#1#0#0#10'TPopupMenu'#10'PopupMenu1'#4'left'#2'0'#3'top'#3
-  +#179#0#0#9'TMenuItem'#11'ClickedWord'#7'Caption'#6#11'ClickedWord'#0#0#9'TMe'
-  +'nuItem'#2'N1'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#7'mitCopy'#7'Caption'#6#5
+  +'er'#4'left'#3#200#0#3'top'#3#232#0#0#0#11'TSaveDialog'#11'SaveDialog1'#5'Ti'
+  +'tle'#6#12'Save file as'#11'FilterIndex'#2#0#7'Options'#11#17'ofOverwritePro'
+  +'mpt'#14'ofHideReadOnly'#15'ofPathMustExist'#18'ofNoReadOnlyReturn'#0#4'left'
+  +#3#208#0#3'top'#3#24#1#0#0#10'TPopupMenu'#10'PopupMenu1'#4'left'#2'0'#3'top'
+  +#3#179#0#0#9'TMenuItem'#11'ClickedWord'#7'Caption'#6#11'ClickedWord'#0#0#9'T'
+  +'MenuItem'#2'N1'#7'Caption'#6#1'-'#0#0#9'TMenuItem'#7'mitCopy'#7'Caption'#6#5
   +'&Copy'#7'OnClick'#7#12'mitCopyClick'#0#0#9'TMenuItem'#12'mitSelectAll'#7'Ca'
   +'ption'#6#11'&Select All'#7'OnClick'#7#17'mitSelectAllClick'#0#0#0#0
 ]);

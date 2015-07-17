@@ -17,7 +17,7 @@ type
     Image3: TImage;
     ImageList1: TImageList;
     StatusBar1: TStatusBar;
-    RichView1: TRichView;
+    RichView1: TRichEdit;
     Image4: TImage;
     RVPrint1: TRVPrint;
     SaveDialog1: TSaveDialog;

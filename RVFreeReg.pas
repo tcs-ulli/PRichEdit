@@ -17,7 +17,7 @@ implementation
 {--------------------------------------------------------------}
 procedure Register;
 begin
-  RegisterComponents('RichView', [TRVStyle, TRichView, TRVPrint]);
+  RegisterComponents('RichView', [TRVStyle, TRichView,TRichEdit, TRVPrint]);
 end;
 
 initialization
