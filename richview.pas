@@ -11,7 +11,7 @@ uses
   Windows, Messages,
   {$ENDIF}
   SysUtils, Classes, Graphics, Controls, Forms,
-  RVStyle, RVScroll, ClipBrd,
+  RVStyle, RVScroll, ClipBrd,richdocument,
   {$IFDEF RICHVIEWDEF4}
   ImgList,
   {$ENDIF}
@@ -42,14 +42,6 @@ type
      Left, Top, Width, Height: Integer;
      LineNo, Offs: Integer;
      FromNewLine: Boolean;
-  end;
-  {------------------------------------------------------------------}
-  TLineInfo = class
-     StyleNo: Integer;
-     SameAsPrev: Boolean;
-     Center: Boolean;
-     imgNo: Integer; { for rvsJump# used as jump id }
-     gr: TPersistent;
   end;
   {------------------------------------------------------------------}
   TCPInfo = class
@@ -117,7 +109,7 @@ type
     procedure RestoreSelBounds(StartNo, EndNo, StartOffs, EndOffs: Integer);
   protected
     { Protected declarations }
-    drawlines:TStringList;
+    drawlines:TRichDocument;
     checkpoints: TStringList;
     jumps: TStringList;
     FStyle: TRVStyle;
@@ -241,6 +233,8 @@ type
   end;
 
 
+  { TRichEdit }
+
   TRichEdit = class(TRichView)
     procedure FCursorTimerTimer(Sender: TObject);
   private
@@ -248,6 +242,9 @@ type
     FCursorVisible : Boolean;
   protected
     procedure Paint; override;
+    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+    procedure KeyPress(var Key: char); override;
+    procedure DeleteSelectedContent;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -287,7 +284,7 @@ end;
 procedure TRichEdit.Paint;
 var
   dli: TDrawLineInfo;
-  li: TLineInfo;
+  li: TParagraphInfo;
   TopObj: TDrawLineInfo;
   VOffs: Integer;
   HOffs: Integer;
@@ -301,7 +298,7 @@ begin
     begin
       if FSelEndNo<0 then exit;
       dli := TDrawLineInfo(DrawLines.Objects[FSelEndNo]);
-      li := TLineInfo(lines.Objects[dli.LineNo]);
+      li := TParagraphInfo(lines.Objects[dli.LineNo]);
       VOffs := VPos*SmallStep;
       HOffs := HPos*SmallStep;
       HinnerOffs := 0;
@@ -319,6 +316,62 @@ begin
           end;
         end;
       Canvas.Rectangle(dli.Left+HinnerOffs-HOffs,dli.Top-VOffs,(dli.Left+2+HinnerOffs)-HOffs,(dli.Top-VOffs)+dli.Height);
+    end;
+end;
+
+procedure TRichEdit.KeyDown(var Key: Word; Shift: TShiftState);
+begin
+  inherited KeyDown(Key, Shift);
+  case Key of
+  VK_RETURN:
+    begin
+
+    end;
+  VK_DELETE,VK_BACK:
+    begin
+      if GetSelText<>'' then
+        DeleteSelectedContent
+      else if key=VK_BACK then
+        begin
+          drawlines.Strings[FSelEndNo] := Copy(drawlines.Strings[FSelEndNo], 1, FSelEndOffs-2)+Copy(drawlines.Strings[FSelEndNo], FSelEndOffs,length(drawlines.Strings[FSelEndNo]));
+          dec(FSelEndOffs);
+        end;
+    end;
+  VK_LEFT,VK_RIGHT,VK_UP,VK_DOWN:
+   begin
+
+   end;
+  end;
+end;
+
+procedure TRichEdit.KeyPress(var Key: char);
+begin
+  inherited KeyPress(Key);
+  if ord(Key) in [VK_SHIFT, VK_CONTROL, VK_MENU,
+             VK_LSHIFT, VK_LCONTROL, VK_LMENU,
+             VK_RSHIFT, VK_RCONTROL, VK_RMENU,
+             VK_LWIN, VK_RWIN,VK_RETURN,VK_TAB,
+             VK_BACK,VK_LEFT,VK_UP,VK_RIGHT,VK_DOWN]
+  then
+    exit;
+  if FSelEndNo<0 then exit;
+  DeleteSelectedContent;
+  drawlines.Strings[FSelEndNo] := Copy(drawlines.Strings[FSelEndNo], 1, FSelEndOffs-1)+Key+Copy(drawlines.Strings[FSelEndNo], FSelEndOffs,length(drawlines.Strings[FSelEndNo]));
+  FSelEndOffs := FSelEndOffs+1;
+  Invalidate;
+end;
+
+procedure TRichEdit.DeleteSelectedContent;
+var
+  i: Integer;
+begin
+  i := FSelStartNo+1;
+  drawlines.Strings[FSelStartNo] := Copy(drawlines.Strings[FSelStartNo], 1, FSelEndOffs-1);
+  inc(FSelStartNo);
+  while i <= FSelEndNo do
+    begin
+      DrawLines.Delete(i);
+      dec(FSelEndNo);
     end;
 end;
 
@@ -363,7 +416,7 @@ begin
   LastJumpMovedAbove := -1; 
   FStyle         := nil;
   LastJumpDowned := -1;
-  drawlines      := TStringList.Create;
+  drawlines      := TRichDocument.Create;
   lines          := TStringList.Create;
   checkpoints    := TStringList.Create;
   jumps          := TStringList.Create;
@@ -466,7 +519,7 @@ begin
   FSelEndNo := DrawLines.Count-1;
   FSelStartOffs := 0;
   FSelEndOffs := 0;
-  if TLineInfo(Lines.Objects[TDrawLineInfo(DrawLines.Objects[FSelEndNo]).LineNo]).StyleNo>=0 then
+  if TParagraphInfo(Lines.Objects[TDrawLineInfo(DrawLines.Objects[FSelEndNo]).LineNo]).StyleNo>=0 then
     FSelEndOffs := Length(DrawLines[FSelEndNo])+1;
   if Assigned(FOnSelect) then OnSelect(Self);
 end;
@@ -478,18 +531,18 @@ begin
   if not ShareContents then begin
       lines.BeginUpdate;
       for i:=0 to lines.Count-1 do begin
-        if TLineInfo(lines.objects[i]).StyleNo = -3 then { image}
+        if TParagraphInfo(lines.objects[i]).StyleNo = -3 then { image}
           begin
-            TLineInfo(lines.objects[i]).gr.Free;
-            TLineInfo(lines.objects[i]).gr := nil;
+            TParagraphInfo(lines.objects[i]).gr.Free;
+            TParagraphInfo(lines.objects[i]).gr := nil;
           end;
-        if TLineInfo(lines.objects[i]).StyleNo = -5 then {control}
+        if TParagraphInfo(lines.objects[i]).StyleNo = -5 then {control}
           begin
-            RemoveControl(TControl(TLineInfo(lines.objects[i]).gr));
-            TLineInfo(lines.objects[i]).gr.Free;
-            TLineInfo(lines.objects[i]).gr := nil;
+            RemoveControl(TControl(TParagraphInfo(lines.objects[i]).gr));
+            TParagraphInfo(lines.objects[i]).gr.Free;
+            TParagraphInfo(lines.objects[i]).gr := nil;
           end;
-        TLineInfo(lines.objects[i]).Free;
+        TParagraphInfo(lines.objects[i]).Free;
         lines.objects[i] := nil;
       end;
       lines.Clear;
@@ -499,9 +552,9 @@ begin
 end;
 {-------------------------------------}
 procedure TRichView.AddFromNewLine(s: String; StyleNo:Integer);
-var info: TLineInfo;
+var info: TParagraphInfo;
 begin
-  info := TLineInfo.Create;
+  info := TParagraphInfo.Create;
   info.StyleNo := StyleNo;
   info.SameAsPrev := False;
   info.Center := False;
@@ -509,9 +562,9 @@ begin
 end;
 {-------------------------------------}
 procedure TRichView.Add(s: String; StyleNo:Integer);
-var info: TLineInfo;
+var info: TParagraphInfo;
 begin
-  info := TLineInfo.Create;
+  info := TParagraphInfo.Create;
   info.StyleNo := StyleNo;
   info.SameAsPrev := (lines.Count<>0);
   info.Center := False;
@@ -569,9 +622,9 @@ begin
 end;
 {-------------------------------------}
 procedure TRichView.AddCenterLine(s: String;StyleNo:Integer);
-var info: TLineInfo;
+var info: TParagraphInfo;
 begin
-  info := TLineInfo.Create;
+  info := TParagraphInfo.Create;
   info.StyleNo := StyleNo;
   info.SameAsPrev := False;
   info.Center := True;
@@ -579,18 +632,18 @@ begin
 end;
 {-------------------------------------}
 procedure TRichView.AddBreak;
-var info: TLineInfo;
+var info: TParagraphInfo;
 begin
-  info := TLineInfo.Create;
+  info := TParagraphInfo.Create;
   info.StyleNo := -1;
   lines.AddObject('', info);
 end;
 {-------------------------------------}
 function TRichView.AddNamedCheckPoint(CpName: String): Integer;
-var info: TLineInfo;
+var info: TParagraphInfo;
     cpinfo: TCPInfo;
 begin
-  info := TLineInfo.Create;
+  info := TParagraphInfo.Create;
   info.StyleNo := -2;
   lines.AddObject(CpName, info);
   cpInfo := TCPInfo.Create;
@@ -621,9 +674,9 @@ begin
 end;
 {-------------------------------------}
 procedure TRichView.AddPicture(gr: TGraphic); { gr not copied, do not free it!}
-var info: TLineInfo;
+var info: TParagraphInfo;
 begin
-  info := TLineInfo.Create;
+  info := TParagraphInfo.Create;
   info.StyleNo := -3;
   info.gr := gr;
   info.SameAsPrev := False;
@@ -632,9 +685,9 @@ begin
 end;
 {-------------------------------------}
 procedure TRichView.AddHotSpot(imgNo: Integer; lst: TImageList; fromnewline: Boolean);
-var info: TLineInfo;
+var info: TParagraphInfo;
 begin
-  info := TLineInfo.Create;
+  info := TParagraphInfo.Create;
   info.StyleNo := -4;
   info.gr := lst;
   info.imgNo := imgNo;
@@ -643,9 +696,9 @@ begin
 end;
 {-------------------------------------}
 procedure TRichView.AddBullet(imgNo: Integer; lst: TImageList; fromnewline: Boolean);
-var info: TLineInfo;
+var info: TParagraphInfo;
 begin
-  info := TLineInfo.Create;
+  info := TParagraphInfo.Create;
   info.StyleNo := -6;
   info.gr := lst;
   info.imgNo := imgNo;
@@ -654,9 +707,9 @@ begin
 end;
 {-------------------------------------}
 procedure TRichView.AddControl(ctrl: TControl; center: Boolean); { do not free ctrl! }
-var info: TLineInfo;
+var info: TParagraphInfo;
 begin
-  info := TLineInfo.Create;
+  info := TParagraphInfo.Create;
   info.StyleNo := -5;
   info.gr := ctrl;
   info.SameAsPrev := False;
@@ -670,12 +723,12 @@ var i,m: Integer;
 begin
   m := 0;
   for i:=0 to lines.Count-1 do  begin
-   if TLineInfo(lines.objects[i]).StyleNo = -3 then
-       if  m<TGraphic(TLineInfo(lines.objects[i]).gr).Width then
-          m := TGraphic(TLineInfo(lines.objects[i]).gr).Width;
-       if TLineInfo(lines.objects[i]).StyleNo = -5 then
-       if  m<TControl(TLineInfo(lines.objects[i]).gr).Width then
-          m := TControl(TLineInfo(lines.objects[i]).gr).Width;
+   if TParagraphInfo(lines.objects[i]).StyleNo = -3 then
+       if  m<TGraphic(TParagraphInfo(lines.objects[i]).gr).Width then
+          m := TGraphic(TParagraphInfo(lines.objects[i]).gr).Width;
+       if TParagraphInfo(lines.objects[i]).StyleNo = -5 then
+       if  m<TControl(TParagraphInfo(lines.objects[i]).gr).Width then
+          m := TControl(TParagraphInfo(lines.objects[i]).gr).Width;
    end;
  GetMaxPictureWidth := m;
 end;
@@ -740,7 +793,7 @@ begin
      InfoAboutSaD(sad, Canvas);
      sad.LeftMargin := MulDiv(FLeftMargin,  sad.ppixDevice, sad.ppixScreen);
      for i:=StartLine to lines.Count-1 do begin
-       StyleNo := TLineInfo(Lines.Objects[i]).StyleNo;
+       StyleNo := TParagraphInfo(Lines.Objects[i]).StyleNo;
        if not (((StyleNo = rvsPicture) and (not (rvdoImages in DisplayOptions))) or
           ((StyleNo = rvsComponent)and(not (rvdoComponents in DisplayOptions))) or
           (((StyleNo = rvsBullet) or (StyleNo = rvsHotspot))and(not (rvdoBullets in DisplayOptions)))) then
@@ -773,11 +826,11 @@ end;
 procedure TRichView.AdjustChildrenCoords;
 var i: Integer;
     dli: TDrawLineInfo;
-    li : TLineInfo;
+    li : TParagraphInfo;
 begin
   for i:=0 to drawlines.Count-1 do begin
    dli := TDrawLineInfo(drawlines.Objects[i]);
-   li := TLineInfo(lines.Objects[dli.LineNo]);
+   li := TParagraphInfo(lines.Objects[dli.LineNo]);
    if li.StyleNo = -5 then {control}
    begin
         TControl(li.gr).Left := dli.Left;
@@ -806,11 +859,11 @@ var sourceStrPtr, strForAdd, strSpacePos: PChar;
     width, y5, Offs : Integer;
 begin
   width := TextWidth;
-  case TLineInfo(lines.Objects[no]).StyleNo of
+  case TParagraphInfo(lines.Objects[no]).StyleNo of
    -5: { Control }
      begin
-       ctrlw       := TControl(TLineInfo(lines.Objects[no]).gr).Width;
-       ctrlh       := TControl(TLineInfo(lines.Objects[no]).gr).Height;
+       ctrlw       := TControl(TParagraphInfo(lines.Objects[no]).gr).Width;
+       ctrlh       := TControl(TParagraphInfo(lines.Objects[no]).gr).Height;
        ctrlw       := MulDiv(ctrlw, sad.ppixDevice, sad.ppixScreen);
        ctrlh       := MulDiv(ctrlh, sad.ppiyDevice, sad.ppiyScreen);
        info        := TDrawLineInfo.Create;
@@ -818,7 +871,7 @@ begin
        info.Top    := baseline + prevdesc + 1;
        info.Width  := ctrlw;
        info.Height := ctrlh+1;
-       if TLineInfo(lines.Objects[no]).Center then begin
+       if TParagraphInfo(lines.Objects[no]).Center then begin
           info.Left   := (width-ctrlw) div 2;
           if info.Left<0 then info.Left := 0;
           inc(info.Left,sad.LeftMargin);
@@ -826,23 +879,23 @@ begin
        else
           info.Left := sad.LeftMargin;
        drawlines.AddObject('',info);
-       TControl(TLineInfo(lines.Objects[no]).gr).Left := info.Left;
-       TControl(TLineInfo(lines.Objects[no]).gr).Tag := info.Top;
-       Tag2Y(TControl(TLineInfo(lines.Objects[no]).gr));
+       TControl(TParagraphInfo(lines.Objects[no]).gr).Left := info.Left;
+       TControl(TParagraphInfo(lines.Objects[no]).gr).Tag := info.Top;
+       Tag2Y(TControl(TParagraphInfo(lines.Objects[no]).gr));
        inc (baseline,prevdesc+ctrlh+1);
        prevdesc :=1;
        prevabove := ctrlh+1;
      end;
    -4, -6: { hotSpot or Bullet }
      begin
-       ctrlw       := TImageList(TLineInfo(lines.Objects[no]).gr).Width;
-       ctrlh       := TImageList(TLineInfo(lines.Objects[no]).gr).Height;
+       ctrlw       := TImageList(TParagraphInfo(lines.Objects[no]).gr).Width;
+       ctrlh       := TImageList(TParagraphInfo(lines.Objects[no]).gr).Height;
        ctrlw       := MulDiv(ctrlw, sad.ppixDevice, sad.ppixScreen);
        ctrlh       := MulDiv(ctrlh, sad.ppiyDevice, sad.ppiyScreen);
        info := TDrawLineInfo.Create;
        info.Width  := ctrlw+1;
        info.Height := ctrlh+1;
-       if  not TLineInfo(lines.Objects[no]).SameAsPrev or (x+ctrlw+2 > width) then begin
+       if  not TParagraphInfo(lines.Objects[no]).SameAsPrev or (x+ctrlw+2 > width) then begin
           x:=0;
           y:=baseline + prevdesc;
           inc (baseline,prevdesc+ctrlh+1);
@@ -862,7 +915,7 @@ begin
           end;
           y := baseline - (ctrlh+1);
        end;
-       if TLineInfo(lines.Objects[no]).StyleNo = -4 then begin{HotSpot}
+       if TParagraphInfo(lines.Objects[no]).StyleNo = -4 then begin{HotSpot}
           jmpinfo     := TJumpInfo.Create;
           jmpinfo.l   := x+1+sad.LeftMargin;;
           jmpinfo.t   := y+1;
@@ -877,13 +930,13 @@ begin
        inc(x, ctrlw+2);
        info.Top :=  y+1;
        info.LineNo := no;
-       info.FromNewLine := not TLineInfo(lines.Objects[no]).SameAsPrev;
+       info.FromNewLine := not TParagraphInfo(lines.Objects[no]).SameAsPrev;
        drawlines.AddObject('',info);
      end;
    -3:  { graphics}
      begin
-       ctrlw       := TGraphic(TLineInfo(lines.Objects[no]).gr).Width;
-       ctrlh       := TGraphic(TLineInfo(lines.Objects[no]).gr).Height;
+       ctrlw       := TGraphic(TParagraphInfo(lines.Objects[no]).gr).Width;
+       ctrlh       := TGraphic(TParagraphInfo(lines.Objects[no]).gr).Height;
        ctrlw       := MulDiv(ctrlw, sad.ppixDevice, sad.ppixScreen);
        ctrlh       := MulDiv(ctrlh, sad.ppiyDevice, sad.ppiyScreen);
        info        := TDrawLineInfo.Create;
@@ -925,7 +978,7 @@ begin
        strForAdd := str;
        sourceStrPtrLen := StrLen(sourceStrPtr);
 
-       StyleNo := TLineInfo(lines.Objects[no]).StyleNo;
+       StyleNo := TParagraphInfo(lines.Objects[no]).StyleNo;
        with FStyle.TextStyles[StyleNo] do begin
          Canvas.Font.Style := Style;
          Canvas.Font.Size  := Size;
@@ -935,8 +988,8 @@ begin
          {$ENDIF}
        end;
        GetTextMetrics(Canvas.Handle,metr);
-       newline := not TLineInfo(lines.Objects[no]).SameAsPrev;
-       Center := TLineInfo(lines.Objects[no]).Center;
+       newline := not TParagraphInfo(lines.Objects[no]).SameAsPrev;
+       Center := TParagraphInfo(lines.Objects[no]).Center;
        while sourceStrPtrLen>0 do begin
          if newline then  x:=0;
          {$IFDEF FPC}
@@ -1021,7 +1074,7 @@ begin
            jmpinfo.h := sz.cy;
            jmpinfo.id := nJmps;
            jmpinfo.idx := drawlines.Count-1;
-           TLineInfo(lines.Objects[no]).imgNo := nJmps;
+           TParagraphInfo(lines.Objects[no]).imgNo := nJmps;
            jumps.AddObject('',jmpinfo);
          end;
          sourceStrPtrLen := StrLen(sourceStrPtr);
@@ -1195,7 +1248,7 @@ procedure TRichView.Paint;
 var i,no, yshift, xshift: Integer;
     cl, textcolor: TColor;
     dli:TDrawLineInfo;
-    li: TLineInfo;
+    li: TParagraphInfo;
     lastline, hovernow: Boolean;
     r :TRect;
     buffer: TBitmap;
@@ -1249,7 +1302,7 @@ begin
    dli := TDrawLineInfo(drawlines.Objects[i]);
    if lastline and (dli.Left<=TDrawLineInfo(drawlines.Objects[i-1]).left) then break;
    if dli.Top>r.Bottom then lastline := True;
-   li := TLineInfo(lines.Objects[dli.LineNo]);
+   li := TParagraphInfo(lines.Objects[dli.LineNo]);
    no := li.StyleNo;
    if no>=0 then begin { text }
      canv.Font.Style := FStyle.TextStyles[no].Style;
@@ -1550,11 +1603,11 @@ procedure TRichView.AppendFrom(Source: TRichView);
 var i: Integer;
     gr: TGraphic;
     grclass: TGraphicClass;
-    li: TLineInfo;
+    li: TParagraphInfo;
 begin
   ClearTemporal;
   for i:=0 to Source.Lines.Count-1 do begin
-    li := TLineInfo(Source.Lines.Objects[i]);
+    li := TParagraphInfo(Source.Lines.Objects[i]);
     case li.StyleNo of
       -1: AddBreak;
       -2: AddCheckPoint;
@@ -1796,7 +1849,7 @@ begin
        Offs := 1;
        end
      else begin
-       if TLineInfo(Lines.Objects[TDrawLineInfo(DrawLines.Objects[No]).LineNo]).StyleNo<0 then
+       if TParagraphInfo(Lines.Objects[TDrawLineInfo(DrawLines.Objects[No]).LineNo]).StyleNo<0 then
          Offs := 2
        else
          Offs := Length(DrawLines[No])+1;
@@ -1804,7 +1857,7 @@ begin
      exit;
   }
      No := beginline;
-     if TLineInfo(Lines.Objects[TDrawLineInfo(DrawLines.Objects[No]).LineNo]).StyleNo<0 then
+     if TParagraphInfo(Lines.Objects[TDrawLineInfo(DrawLines.Objects[No]).LineNo]).StyleNo<0 then
          Offs := 0
        else
          Offs := 1;
@@ -1818,7 +1871,7 @@ begin
        Offs := Length(DrawLines[No])+1;
        end
      else begin
-       if TLineInfo(Lines.Objects[TDrawLineInfo(DrawLines.Objects[No]).LineNo]).StyleNo<0 then
+       if TParagraphInfo(Lines.Objects[TDrawLineInfo(DrawLines.Objects[No]).LineNo]).StyleNo<0 then
          Offs := 0;
      end;
      exit;
@@ -1826,7 +1879,7 @@ begin
   for i:= beginline to endline do begin
     dli := TDrawLineInfo(drawlines.Objects[i]);
     if (dli.Left<=X) and (dli.Left+dli.Width>=X) then begin
-      styleno := TLineInfo(lines.Objects[dli.LineNo]).StyleNo;
+      styleno := TParagraphInfo(lines.Objects[dli.LineNo]).StyleNo;
       No := i;
       Offs := 0;
       if styleno>=0 then begin
@@ -1873,7 +1926,7 @@ begin
   if no<>-1 then begin
      lno := TDrawLineInfo(drawlines.Objects[no]).LineNo;
      clickedword := drawlines[no];
-     styleno := TLineInfo(lines.Objects[lno]).StyleNo;
+     styleno := TParagraphInfo(lines.Objects[lno]).StyleNo;
      if styleno>=0 then begin
         with FStyle.TextStyles[StyleNo] do begin
          Canvas.Font.Style := Style;
@@ -1954,18 +2007,18 @@ begin
   if FirstLine+Count>lines.Count then Count := lines.Count-firstline;
   lines.BeginUpdate;
   for i:=FirstLine to FirstLine+Count-1 do begin
-    if TLineInfo(lines.objects[i]).StyleNo = -3 then { image}
+    if TParagraphInfo(lines.objects[i]).StyleNo = -3 then { image}
       begin
-        TLineInfo(lines.objects[i]).gr.Free;
-        TLineInfo(lines.objects[i]).gr := nil;
+        TParagraphInfo(lines.objects[i]).gr.Free;
+        TParagraphInfo(lines.objects[i]).gr := nil;
       end;
-    if TLineInfo(lines.objects[i]).StyleNo = -5 then {control}
+    if TParagraphInfo(lines.objects[i]).StyleNo = -5 then {control}
       begin
-        RemoveControl(TControl(TLineInfo(lines.objects[i]).gr));
-        TLineInfo(lines.objects[i]).gr.Free;
-        TLineInfo(lines.objects[i]).gr := nil;
+        RemoveControl(TControl(TParagraphInfo(lines.objects[i]).gr));
+        TParagraphInfo(lines.objects[i]).gr.Free;
+        TParagraphInfo(lines.objects[i]).gr := nil;
       end;
-    TLineInfo(lines.objects[i]).Free;
+    TParagraphInfo(lines.objects[i]).Free;
     lines.objects[i] := nil;
   end;
   for i:=1 to Count do lines.Delete(FirstLine);
@@ -2000,11 +2053,11 @@ begin
   GetSelBounds(StartNo, EndNo, StartOffs, EndOffs);
   if StartNo<>-1 then begin
     dli := TDrawLineInfo(DrawLines.Objects[StartNo]);
-    if TLineInfo(Lines.Objects[dli.LineNo]).StyleNo>=0 then
+    if TParagraphInfo(Lines.Objects[dli.LineNo]).StyleNo>=0 then
         inc(StartOffs, dli.Offs-1);
     StartNo := dli.LineNo;
     dli := TDrawLineInfo(DrawLines.Objects[EndNo]);
-    if TLineInfo(Lines.Objects[dli.LineNo]).StyleNo>=0 then
+    if TParagraphInfo(Lines.Objects[dli.LineNo]).StyleNo>=0 then
         inc(EndOffs, dli.Offs-1);
     EndNo := dli.LineNo;
   end;
@@ -2018,7 +2071,7 @@ begin
   for i :=0 to DrawLines.Count-1 do begin
     dli := TDrawLineInfo(DrawLines.Objects[i]);
     if dli.LineNo = StartNo then
-      if TLineInfo(Lines.Objects[dli.LineNo]).StyleNo<0 then begin
+      if TParagraphInfo(Lines.Objects[dli.LineNo]).StyleNo<0 then begin
         FSelStartNo := i;
         FSelStartOffs := StartOffs;
         end
@@ -2043,7 +2096,7 @@ begin
         end;
       end;
     if dli.LineNo = EndNo then
-      if TLineInfo(Lines.Objects[dli.LineNo]).StyleNo<0 then begin
+      if TParagraphInfo(Lines.Objects[dli.LineNo]).StyleNo<0 then begin
         FSelEndNo := i;
         FSelEndOffs := EndOffs;
         end
@@ -2088,26 +2141,26 @@ end;
 function TRichView.GetSelText: String;
 var StartNo, EndNo, StartOffs, EndOffs, i: Integer;
     s : String;
-    li : TLineInfo;
+    li : TParagraphInfo;
 begin
   Result := '';
   if not SelectionExists then exit;
   { getting selection as Lines indices }
   StoreSelBounds(StartNo, EndNo, StartOffs, EndOffs);
   if StartNo = EndNo then begin
-    li := TLineInfo(Lines.Objects[StartNo]);
+    li := TParagraphInfo(Lines.Objects[StartNo]);
     if li.StyleNo < 0 then exit;
     Result := Copy(Lines[StartNo], StartOffs, EndOffs-StartOffs);
     exit;
     end
   else begin
-    li := TLineInfo(Lines.Objects[StartNo]);
+    li := TParagraphInfo(Lines.Objects[StartNo]);
     if li.StyleNo < 0 then
       s := ''
     else
       s := Copy(Lines[StartNo], StartOffs, Length(Lines[StartNo]));
     for i := StartNo+1 to EndNo do begin
-      li := TLineInfo(Lines.Objects[i]);
+      li := TParagraphInfo(Lines.Objects[i]);
       if (li.StyleNo<>rvsCheckpoint) and not li.SameAsPrev then
           s := s+chr(13);
       if li.StyleNo >= 0 then

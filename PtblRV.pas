@@ -11,7 +11,7 @@ uses
   Windows, Messages,
   {$ENDIF}
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  RVScroll, RichView, Printers{, CommDlg};
+  RVScroll, RichView, Printers, richdocument;
 
 {$I RV_Defs.inc}
 
@@ -390,7 +390,7 @@ end;
 procedure TPrintableRV.DrawPage(pgNo: Integer; Canvas: TCanvas);
 var i,no: Integer;
     dli:TDrawLineInfo;
-    li: TLineInfo;
+    li: TParagraphInfo;
     zerocoord: Integer;
     first, last: Integer;
     sad:TScreenAndDevice;
@@ -445,7 +445,7 @@ begin
 try
  for i:=first to last do begin
    dli := TDrawLineInfo(drawlines.Objects[i]);
-   li := TLineInfo(lines.Objects[dli.LineNo]);
+   li := TParagraphInfo(lines.Objects[dli.LineNo]);
    no := li.StyleNo;
    if no>=0 then { text }
      with FStyle.TextStyles[no] do begin

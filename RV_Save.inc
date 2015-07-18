@@ -150,7 +150,7 @@ end;
 function TRichView.SaveHTML(FileName,Title,ImagesPrefix: String; Options: TRVSaveOptions):Boolean;
 var f: TextFile;
     i,j: Integer;
-    li: TLineInfo;
+    li: TParagraphInfo;
     needbr: Boolean;
     s: String;
     cpno, jumpno: Integer;
@@ -185,7 +185,7 @@ begin
      WriteLn(f,OpenFontTag(Style.TextStyles[rvsNormal], Style.TextStyles[rvsNormal].Style, False));
      needbr := False;
      for i:=0 to Lines.Count-1 do begin
-         li := TLineInfo(lines.Objects[i]);
+         li := TParagraphInfo(lines.Objects[i]);
          case li.StyleNo of
          {*} rvsBreak:
                 begin
@@ -222,10 +222,10 @@ begin
                    if (not li.SameAsPrev) and needbr then WriteLn(f,'<BR>');
                    fn := '';
                    for j:=0 to Bullets.Count-1 do
-                     if (TLineInfo(lines.Objects[i]).gr =
-                         TLineInfo(lines.Objects[TRVInteger2(Bullets.Objects[j]).val]).gr) and
-                        (TLineInfo(lines.Objects[i]).imgNo =
-                         TLineInfo(lines.Objects[TRVInteger2(Bullets.Objects[j]).val]).imgNo) then begin
+                     if (TParagraphInfo(lines.Objects[i]).gr =
+                         TParagraphInfo(lines.Objects[TRVInteger2(Bullets.Objects[j]).val]).gr) and
+                        (TParagraphInfo(lines.Objects[i]).imgNo =
+                         TParagraphInfo(lines.Objects[TRVInteger2(Bullets.Objects[j]).val]).imgNo) then begin
                         fn := Bullets[j];
                      end;
                    if fn='' then begin
@@ -306,7 +306,7 @@ end;
 function TRichView.SaveText(FileName: String; LineWidth: Integer):Boolean;
 var f: TextFile;
     i,j: Integer;
-    li: TLineInfo;
+    li: TParagraphInfo;
     s, s2: String;
 begin
   {$I+}
@@ -318,7 +318,7 @@ begin
     Rewrite(f);
     try
      for i:=0 to Lines.Count-1 do begin
-         li := TLineInfo(lines.Objects[i]);
+         li := TParagraphInfo(lines.Objects[i]);
          case li.StyleNo of
          {*} rvsBreak:
                 begin Writeln(f); Write(f,s); end;

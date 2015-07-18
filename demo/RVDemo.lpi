@@ -5,7 +5,6 @@
     <PathDelim Value="\"/>
     <General>
       <Flags>
-        <SaveClosedFiles Value="False"/>
         <SaveOnlyProjectUnits Value="True"/>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
