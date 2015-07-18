@@ -7,7 +7,7 @@ interface
 uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   RVStyle, RichView, ExtCtrls, StdCtrls, ComCtrls, RVScroll, PtblRV, Menus,
-  ImgList, Buttons, LResources, LCLType;
+  ImgList, Buttons, LResources, LCLType,richdocument;
 
 type
   TForm1 = class(TForm)
@@ -93,10 +93,10 @@ begin
          for no particular reason}
   {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
   with RichView1 do begin
-     AddCenterLine('TRichView Demo and Help Program', rvsHeading);
+     AddCenterLine('TRichView Demo and Help Program',rvsHeading);
      Self.RemoveControl(Image1);
      AddControl(Image1, True);
-     AddCenterLine('(Copyright(c) 1997,98 by Tkachenko S.V.)', rvsNormal);
+     AddCenterLine('(Copyright(c) 1997,98 by Tkachenko S.V.)',rvsNormal);
      AddCenterLine('Contents', rvsSubHeading);
      AddBullet(0, ImageList1, True);
      Add('    1.   ', rvsNormal);  Add('Introduction', rvsJump1); // jump#0
@@ -854,15 +854,11 @@ begin
             SaveDialog1.DefaultExt := 'txt';
             SaveDialog1.Title := 'Save text file';
             SaveDialog1.Filter := 'Text Files|*.txt';
-            if SaveDialog1.Execute then
-              RichView1.SaveText(SaveDialog1.FileName, 65);
           end;
       18: begin
             SaveDialog1.DefaultExt := 'htm';
             SaveDialog1.Title := 'Save HTML File';
             SaveDialog1.Filter := 'HTML files|*.htm;*.html';
-            if SaveDialog1.Execute then
-              RichView1.SaveHTML(SaveDialog1.FileName,'TRichView Help', 'rvimg', [rvsoOverrideImages]);
           end;
       21: ScrollTo(GetJumpPointY(FirstJumpNo));
     end;

@@ -12,7 +12,7 @@ type
 
   { TODFDocument }
 
-  TODFDocument = class(TRichDocument)
+  TODFDocument = class(TCustomRichDocument)
   private
     Content:txmldocument;
     FFilename : string;

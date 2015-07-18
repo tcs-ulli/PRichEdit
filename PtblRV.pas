@@ -446,89 +446,72 @@ try
  for i:=first to last do begin
    dli := TDrawLineInfo(drawlines.Objects[i]);
    li := TParagraphInfo(lines.Objects[dli.LineNo]);
-   no := li.StyleNo;
-   if no>=0 then { text }
-     with FStyle.TextStyles[no] do begin
-       Canvas.Font.Color := Color;
-       Canvas.Font.Style := Style;
-       Canvas.Font.Size  := Size;
-       Canvas.Font.Name  := FontName;
-       {$IFDEF RICHVIEWDEF3}
-       Canvas.Font.CharSet  := CharSet;
-       {$ENDIF}
-       Canvas.TextOut(
-          MulDiv(dli.Left+TmpLM, sad.ppixDevice, Printersad.ppixDevice),
-          MulDiv( dli.Top-zerocoord, sad.ppiyDevice, Printersad.ppiyDevice),
-          drawlines.Strings[i]);
-       continue;
-     end;
-   case no of
-     -3,-4,-6:{ graphics } { hotspots and bullets }
-       begin
-         //if li.gr is TMetafile then begin
-         //    wmf := TMetafile.Create;
-         //    try
-         //       wmf.Assign(li.gr);
-         //       wmf.Width  := MulDiv(TMetafile(li.gr).Width, sad.ppixDevice, sad.ppixScreen);
-         //       wmf.Height := MulDiv(TMetafile(li.gr).Height, sad.ppiyDevice, sad.ppiyScreen);
-         //       Canvas.Draw(
-         //         MulDiv(dli.Left+TmpLM, sad.ppixDevice, Printersad.ppixDevice),
-         //         MulDiv( dli.Top-zerocoord, sad.ppiyDevice, Printersad.ppiyDevice),
-         //         wmf);
-         //    finally
-         //      wmf.free;
-         //    end;
-         // end
-         {else} begin
-          if no = rvsPicture then begin
-            tmpbmp.Width  := TGraphic(li.gr).Width;
-            tmpbmp.Height := TGraphic(li.gr).Height;
-            end
-          else begin
-            tmpbmp.Width  := TImageList(li.gr).Width;
-            tmpbmp.Height := TImageList(li.gr).Height;
-          end;
-          if background<>nil then
-            tmpbmp.Canvas.CopyRect(Rect(0,0, tmpbmp.Width, tmpbmp.Height),
-                 background.Canvas,
-                 Rect(
-                     MulDiv(dli.Left,          Printersad.ppixScreen, Printersad.ppixDevice),
-                     MulDiv(dli.Top-(zerocoord+TmpTM), Printersad.ppiyScreen, Printersad.ppiyDevice),
-                     MulDiv(dli.Left,          Printersad.ppixScreen, Printersad.ppixDevice)+tmpbmp.Width,
-                     MulDiv(dli.Top-(zerocoord+TmpTM), Printersad.ppiyScreen, Printersad.ppiyDevice)+tmpbmp.Height
-                     )
+   if li is TTextParagraph then { text }
+     begin
+       with FStyle.TextStyles[TTextParagraph(li).StyleNo] do begin
+         Canvas.Font.Color := Color;
+         Canvas.Font.Style := Style;
+         Canvas.Font.Size  := Size;
+         Canvas.Font.Name  := FontName;
+         {$IFDEF RICHVIEWDEF3}
+         Canvas.Font.CharSet  := CharSet;
+         {$ENDIF}
+         Canvas.TextOut(
+            MulDiv(dli.Left+TmpLM, sad.ppixDevice, Printersad.ppixDevice),
+            MulDiv( dli.Top-zerocoord, sad.ppiyDevice, Printersad.ppiyDevice),
+            drawlines.Strings[i]);
+         continue;
+       end;
+     end
+   else if li is TNonTextParagraph then
+     begin
+       if li is TPictureParagraph then begin
+         tmpbmp.Width  := TGraphic(li.gr).Width;
+         tmpbmp.Height := TGraphic(li.gr).Height;
+       end
+       else begin
+         tmpbmp.Width  := TImageList(li.gr).Width;
+         tmpbmp.Height := TImageList(li.gr).Height;
+       end;
+      if background<>nil then
+        tmpbmp.Canvas.CopyRect(Rect(0,0, tmpbmp.Width, tmpbmp.Height),
+             background.Canvas,
+             Rect(
+                 MulDiv(dli.Left,          Printersad.ppixScreen, Printersad.ppixDevice),
+                 MulDiv(dli.Top-(zerocoord+TmpTM), Printersad.ppiyScreen, Printersad.ppiyDevice),
+                 MulDiv(dli.Left,          Printersad.ppixScreen, Printersad.ppixDevice)+tmpbmp.Width,
+                 MulDiv(dli.Top-(zerocoord+TmpTM), Printersad.ppiyScreen, Printersad.ppiyDevice)+tmpbmp.Height
                  )
-          else begin
+             )
+        else begin
             tmpbmp.Canvas.Pen.Color := Style.Color;
             tmpbmp.Canvas.Brush.Color := Style.Color;
             tmpbmp.Canvas.FillRect(Rect(0,0, tmpbmp.Width, tmpbmp.Height));
-          end;
-          if no = rvsPicture then
-             tmpbmp.Canvas.Draw(0,0, TGraphic(li.gr))
-          else
-             TImageList(li.gr).Draw(tmpbmp.Canvas,0,0,li.imgNo);
+        end;
+        if li is TPictureParagraph then
+          tmpbmp.Canvas.Draw(0,0, TGraphic(li.gr))
+        else
+          TImageList(li.gr).Draw(tmpbmp.Canvas,0,0,li.imgNo);
           DrawOnDevice(Canvas,
              MulDiv(dli.Left+TmpLM, sad.ppixDevice, Printersad.ppixDevice),
              MulDiv( dli.Top-zerocoord, sad.ppiyDevice, Printersad.ppiyDevice),
              sad, tmpbmp);
-         end;
-       end;
-     -1: {break line}
-       begin
-         Canvas.Pen.Color := FStyle.TextStyles[0].Color;
-         Canvas.MoveTo(
-             MulDiv(dli.Left+TmpLM+MulDiv(5, printersad.ppixDevice, printersad.ppixScreen),
-                   sad.ppixDevice, Printersad.ppixDevice),
-             MulDiv(dli.Top-zerocoord+MulDiv(5, printersad.ppiyDevice, printersad.ppiyScreen),
-                   sad.ppiyDevice, Printersad.ppiyDevice));
-         Canvas.LineTo(
-             MulDiv(Width+TmpLM-MulDiv(5+RightMargin, printersad.ppixDevice, printersad.ppixScreen),
-                   sad.ppixDevice, Printersad.ppixDevice),
-             MulDiv(dli.Top-zerocoord+MulDiv(5, printersad.ppiyDevice, printersad.ppiyScreen),
-                   sad.ppiyDevice, Printersad.ppiyDevice));
-       end;
+       end
+   else if li is TLineBreakParagraph then
+     begin
+       Canvas.Pen.Color := FStyle.TextStyles[0].Color;
+       Canvas.MoveTo(
+           MulDiv(dli.Left+TmpLM+MulDiv(5, printersad.ppixDevice, printersad.ppixScreen),
+                 sad.ppixDevice, Printersad.ppixDevice),
+           MulDiv(dli.Top-zerocoord+MulDiv(5, printersad.ppiyDevice, printersad.ppiyScreen),
+                 sad.ppiyDevice, Printersad.ppiyDevice));
+       Canvas.LineTo(
+           MulDiv(Width+TmpLM-MulDiv(5+RightMargin, printersad.ppixDevice, printersad.ppixScreen),
+                 sad.ppixDevice, Printersad.ppixDevice),
+           MulDiv(dli.Top-zerocoord+MulDiv(5, printersad.ppiyDevice, printersad.ppiyScreen),
+                 sad.ppiyDevice, Printersad.ppiyDevice));
+     end;
      { controls is not supported yet }
-   end;
  end;
 finally
   background.Free;
