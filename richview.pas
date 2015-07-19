@@ -93,7 +93,6 @@ type
     FBackgroundStyle: TBackgroundStyle;
     OldWidth, OldHeight: Integer;
     FSelStartNo, FSelEndNo, FSelStartOffs, FSelEndOffs: Integer;
-    SmallStep: Integer;
     procedure InvalidateJumpRect(no: Integer);
     procedure WMSize(var Message: TWMSize); message WM_SIZE;
     procedure WMEraseBkgnd(var Message: TWMEraseBkgnd); message WM_ERASEBKGND;
@@ -284,7 +283,6 @@ var
   HOffs: Integer;
   HinnerOffs: Integer;
   canv: TCanvas;
-  no: Integer;
 begin
   inherited Paint;
   canv := Canvas;
@@ -299,11 +297,11 @@ begin
       if FSelEndOffs>0 then
         begin
           if li is TTextParagraph then begin { text }
-            canv.Font.Style := FStyle.TextStyles[no].Style;
-            canv.Font.Size := FStyle.TextStyles[no].Size;
-            canv.Font.Name := FStyle.TextStyles[no].FontName;
+            canv.Font.Style := FStyle.TextStyles[TTextParagraph(li).StyleNo].Style;
+            canv.Font.Size := FStyle.TextStyles[TTextParagraph(li).StyleNo].Size;
+            canv.Font.Name := FStyle.TextStyles[TTextParagraph(li).StyleNo].FontName;
             {$IFDEF RICHVIEWDEF3}
-            canv.Font.CharSet := FStyle.TextStyles[no].CharSet;
+            canv.Font.CharSet := FStyle.TextStyles[TTextParagraph(li).StyleNo].CharSet;
             {$ENDIF}
             HinnerOffs := canv.TextExtent(Copy(drawlines.Strings[FSelEndNo], 1, FSelEndOffs-1)).cx;
           end;

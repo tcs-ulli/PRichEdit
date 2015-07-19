@@ -294,6 +294,7 @@ function TRVScroller.GetVScrollPos: Integer;
 begin
   GetVScrollPos := VPos;
 end;
+
 {-------------------------------------------------------}
 procedure TRVScroller.SetVScrollPos(Pos: Integer);
 begin
