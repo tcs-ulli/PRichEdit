@@ -237,6 +237,8 @@ type
     procedure Paint; override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: char); override;
+    procedure MouseUp(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+      override;
     procedure DeleteSelectedContent;
   public
     constructor Create(AOwner: TComponent); override;
@@ -320,12 +322,11 @@ begin
     end;
   VK_DELETE,VK_BACK:
     begin
-      if GetSelText<>'' then
-        DeleteSelectedContent
-      else if key=VK_BACK then
+      DeleteSelectedContent;
+      if key=VK_BACK then
         begin
           drawlines.Strings[FSelEndNo] := Copy(drawlines.Strings[FSelEndNo], 1, FSelEndOffs-2)+Copy(drawlines.Strings[FSelEndNo], FSelEndOffs,length(drawlines.Strings[FSelEndNo]));
-          dec(FSelEndOffs);
+          Lines.Strings[TDrawLineInfo(DrawLines.Objects[FSelEndNo]).LineNo] := drawlines.Strings[FSelEndNo];
         end;
     end;
   VK_LEFT,VK_RIGHT,VK_UP,VK_DOWN:
@@ -348,22 +349,47 @@ begin
   if FSelEndNo<0 then exit;
   DeleteSelectedContent;
   drawlines.Strings[FSelEndNo] := Copy(drawlines.Strings[FSelEndNo], 1, FSelEndOffs-1)+Key+Copy(drawlines.Strings[FSelEndNo], FSelEndOffs,length(drawlines.Strings[FSelEndNo]));
-  FSelEndOffs := FSelEndOffs+1;
+  Lines.Strings[TDrawLineInfo(DrawLines.Objects[FSelEndNo]).LineNo] := drawlines.Strings[FSelEndNo];
+  inc(FSelEndOffs);
+  FSelStartOffs:=FSelEndOffs;
   Invalidate;
+end;
+
+procedure TRichEdit.MouseUp(Button: TMouseButton; Shift: TShiftState; X,
+  Y: Integer);
+begin
+  inherited MouseUp(Button, Shift, X, Y);
+  FCursorVisible:=True;
+  FCursorTimer.Enabled:=false;
+  FCursorTimer.Enabled:=True;
 end;
 
 procedure TRichEdit.DeleteSelectedContent;
 var
   i: Integer;
+  tmp: String;
 begin
-  i := FSelStartNo+1;
-  drawlines.Strings[FSelStartNo] := Copy(drawlines.Strings[FSelStartNo], 1, FSelEndOffs-1);
-  inc(FSelStartNo);
-  while i <= FSelEndNo do
+  if GetSelText='' then exit;
+  i := FSelStartNo;
+  if FSelStartNo=FSelEndNo then
     begin
-      DrawLines.Delete(i);
-      dec(FSelEndNo);
+      tmp := drawlines.Strings[FSelStartNo];
+      Delete(tmp,FSelStartOffs,FSelEndOffs-FSelStartOffs);
+      drawlines.Strings[FSelStartNo] := tmp;
+    end
+  else
+    begin
+      drawlines.Strings[FSelStartNo] := copy(drawlines.Strings[FSelStartNo],1,FSelStartOffs);
+      inc(i);
+      while i < FSelEndNo do
+        begin
+          DrawLines.Delete(i);
+          dec(FSelEndNo);
+        end;
+      drawlines.Strings[FSelEndNo] := copy(drawlines.Strings[FSelEndNo],FSelEndOffs,length(drawlines.Strings[FSelEndNo]));
     end;
+  FSelEndNo := FSelStartNo;
+  FSelEndOffs:=FSelStartOffs;
 end;
 
 constructor TRichEdit.Create(AOwner: TComponent);
@@ -433,6 +459,7 @@ begin
   LastLineFormatted := -1;
   ScrollTimer    := nil;
   FOldCursor:=crIBeam;
+  DoubleBuffered:=True;
   //Format_(False,0, Canvas, False);
 end;
 {-------------------------------------}

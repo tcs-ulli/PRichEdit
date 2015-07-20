@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Utils,richdocument, zipper,
-  XMLRead, DOM, Dialogs, XMLWrite;
+  XMLRead, DOM, XMLWrite;
 
 type
 
