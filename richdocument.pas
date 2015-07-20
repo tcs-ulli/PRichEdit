@@ -45,11 +45,36 @@ type
   TControlParagraph = class(TNonTextParagraph)
   end;
 
+  { TCustomRichDocument }
+
   TCustomRichDocument = class(TStringList)
+  private
+    FFilename: string;
+    procedure SetFilename(AValue: string);
   public
+    procedure Open;virtual;abstract;
+    function AsString : string;virtual;
+    property FileName : string read FFilename write SetFilename;
   end;
 
 implementation
+
+{ TCustomRichDocument }
+
+procedure TCustomRichDocument.SetFilename(AValue: string);
+begin
+  if FFilename=AValue then Exit;
+  FFilename:=AValue;
+end;
+
+function TCustomRichDocument.AsString: string;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i := 0 to Count-1 do
+    Result := Result+Get(i);
+end;
 
 end.
 

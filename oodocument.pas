@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, Utils,richdocument, zipper,
-  XMLRead, DOM, Dialogs, XMLWrite;
+  XMLRead, DOM, XMLWrite;
 
 type
 
@@ -16,61 +16,74 @@ type
   private
     Content:txmldocument;
     FFilename : string;
+    procedure ReadStyles(AStylesNode: TDOMNode);
+    procedure ReadAutomaticStyles(AStylesNode: TDOMNode);
+    procedure ReadMasterStyles(AStylesNode: TDOMNode);
   public
+    procedure Open; override;
   end;
 
 implementation
 
-{
-function TODFDocument.GetValues(idx : Integer): string;
+{ TODFDocument }
+
+procedure TODFDocument.ReadStyles(AStylesNode: TDOMNode);
 begin
-  if idx < Count then
-    Result := TDOMNode(Items[idx]).TextContent;
+
 end;
 
-procedure TODFDocument.SetValues(idx : Integer; const AValue: string);
-var
-  Parent: TDOMElement;
-  Oldtext: WideString;
+procedure TODFDocument.ReadAutomaticStyles(AStylesNode: TDOMNode);
 begin
-  if idx < Count then
-    begin
-      Oldtext := TDOMNode(Items[idx]).TextContent;
-      Parent := TDOMElement(TDOMNode(Items[idx]).ParentNode);
-      TDOMNode(Items[idx]).TextContent := AValue;
-      TDOMElement(TDOMNode(Items[idx]).ParentNode).SetAttribute('prom_modified','1');
+
+end;
+
+procedure TODFDocument.ReadMasterStyles(AStylesNode: TDOMNode);
+begin
+
+end;
+
+function GetAttrValue(ANode : TDOMNode; AAttrName : string) : string;
+var
+  i: LongWord;
+  Found: Boolean;
+begin
+  Result := '';
+  if ANode = nil then
+    exit;
+
+  Found := false;
+  i := 0;
+  while not Found and (i < ANode.Attributes.Length) do begin
+    if ANode.Attributes.Item[i].NodeName = AAttrName then begin
+      Found := true;
+      Result := ANode.Attributes.Item[i].NodeValue;
     end;
+    inc(i);
+  end;
 end;
 
-constructor TODFDocument.Create(Filename: string);
+procedure TODFDocument.Open;
 var
-  ms : TMemoryStream;
-  UnZip : TUnZipper;
-  iNode: TDOMNode;
-  a: Integer;
-  i: Integer;
-  aStream: TStream;
   FilePath: String;
+  UnZip: TUnZipper;
   FileList: TStringList;
-
-  procedure ScanChilds(iNode : TDOMNode);
-  var
-    i: Integer;
+  Doc: TXMLDocument;
+  StylesNode: TDOMNode;
+  BodyNode: TDOMNode;
+  TextNode: TDOMNode;
+  tmp: DOMString;
+  ChildNode: TDOMNode;
+  nodeName: DOMString;
+  cellText: String;
+  hyperlink: String;
+  subnode: TDOMNode;
+  procedure AddToCellText(AText: String);
   begin
-    for i := 0 to iNode.ChildNodes.Count-1 do
-      begin
-        if iNode.NodeName = 'text:placeholder' then
-          Add(iNode);
-//        if iNode.NodeName = 'text:database-display' then
-//          Add(iNode);
-//        if iNode.NodeName = 'text:variable-set' then
-//          Add(iNode);
-        if iNode.ChildNodes[i].ChildNodes.Count > 0 then
-          ScanChilds(iNode.ChildNodes[i]);
-      end;
+    if cellText = ''
+       then cellText := AText
+       else cellText := cellText + AText;
   end;
 begin
-  inherited Create;
   FilePath := GetTempDir(false);
   UnZip := TUnZipper.Create;
   FileList := TStringList.Create;
@@ -84,72 +97,70 @@ begin
     FreeAndNil(FileList);
     FreeAndNil(UnZip);
   end; //try
+  Doc := nil;
+  try
+    // process the styles.xml file
+    ReadXMLFile(Doc, FilePath+'styles.xml');
+    DeleteFile(FilePath+'styles.xml');
 
-  if not Assigned(Content) then exit;
-  iNode := Content.FirstChild.FindNode('office:body');
-  iNode := iNode.FirstChild;
-  ScanChilds(iNode);
-end;
+    StylesNode := Doc.DocumentElement.FindNode('office:styles');
+    ReadStyles(StylesNode);
 
-function TODFDocument.AsString: string;
-begin
+    StylesNode := Doc.DocumentElement.FindNode('office:automatic-styles');
+    ReadAutomaticStyles(StylesNode);
 
-end;
+    StylesNode := Doc.DocumentElement.FindNode('office:master-styles');
+    ReadMasterStyles(StylesNode);
 
-procedure TODFDocument.Save;
-var
-  Zip: TZipper;
-  s: String;
-  ms: TMemoryStream;
-  iNode: TDOMNode;
+    Doc.Free;
 
-  procedure ScanChilds(iNode : TDOMNode);
-  var
-    i: Integer;
-    newText: String;
-  begin
-    if TDOMElement(iNode).hasAttribute('prom_modified') then
-      begin
-        newText := '';
-        for i := 0 to TDOMElement(iNode).ChildNodes.Count-1 do
-          NewText := NewText+' '+iNode.ChildNodes[i].TextContent;
-        iNode.TextContent:=NewText;
-        TDOMElement(iNode).RemoveAttribute('prom_modified');
+    //process the content.xml file
+    ReadXMLFile(Doc, FilePath+'content.xml');
+    DeleteFile(FilePath+'content.xml');
+
+    StylesNode := Doc.DocumentElement.FindNode('office:automatic-styles');
+    ReadStyles(StylesNode);
+
+    BodyNode := Doc.DocumentElement.FindNode('office:body');
+    if not Assigned(BodyNode) then Exit;
+
+    TextNode := BodyNode.FindNode('office:text');
+    if not Assigned(TextNode) then Exit;
+    cellText := '';
+    hyperlink := '';
+    ChildNode := TextNode.FirstChild;
+    while Assigned(childnode) do
+    begin
+      nodeName := childNode.NodeName;
+      if nodeName = 'text:p' then begin
+        // Each 'text:p' node is a paragraph --> we insert a line break after the first paragraph
+        if cellText <> '' then
+          cellText := cellText + LineEnding;
+        subnode := childnode.FirstChild;
+        while Assigned(subnode) do
+        begin
+          nodename := subnode.NodeName;
+          case nodename of
+            '#text' :
+              AddToCellText(subnode.TextContent);
+            'text:a':     // "hyperlink anchor"
+              begin
+                hyperlink := GetAttrValue(subnode, 'xlink:href');
+                AddToCellText(subnode.TextContent);
+              end;
+            'text:span':
+              AddToCellText(subnode.TextContent);
+          end;
+          subnode := subnode.NextSibling;
+        end;
       end;
-    for i := 0 to iNode.ChildNodes.Count-1 do
-      begin
-        if iNode.ChildNodes[i].ChildNodes.Count > 0 then
-          ScanChilds(iNode.ChildNodes[i]);
-      end;
+      childnode := childnode.NextSibling;
+    end;
+    AddObject(CellText,nil);
+  finally
+    if Assigned(Doc) then Doc.Free;
   end;
-begin
-  iNode := Content.FirstChild.FindNode('office:body');
-  iNode := iNode.FirstChild;
-  ScanChilds(iNode);
-  Zip := TZipper.Create;
-  Zip.FileName := FFilename;
-//  Zip.StoreOptions:=[soReplace];
-//  Zip.ForceType:=True;
-//  Zip.ArchiveType:=atZip;
-//  Zip.OpenArchive(FFilename);
-//  Zip.ForceType:=True;
-//  Zip.ArchiveType:=atZip;
-  ms := TMemoryStream.Create;
-  WriteXMLFile(Content,ms);
-  ms.Position:=0;
-  Zip.Entries.AddFileEntry(ms,'content.xml');
-  ms.free;
-  Zip.ZipAllFiles;
-  Zip.Free;
 end;
-
-destructor TODFDocument.Destroy;
-begin
-  Content.Free;
-  inherited Destroy;
-end;
-
-}
 
 end.
 
