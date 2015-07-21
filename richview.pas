@@ -314,7 +314,6 @@ end;
 
 procedure TRichEdit.KeyDown(var Key: Word; Shift: TShiftState);
 begin
-  inherited KeyDown(Key, Shift);
   case Key of
   VK_RETURN:
     begin
@@ -322,17 +321,24 @@ begin
     end;
   VK_DELETE,VK_BACK:
     begin
-      DeleteSelectedContent;
-      if key=VK_BACK then
+      if GetSelText<>'' then
+        begin
+          DeleteSelectedContent;
+        end
+      else if key=VK_BACK then
         begin
           drawlines.Strings[FSelEndNo] := Copy(drawlines.Strings[FSelEndNo], 1, FSelEndOffs-2)+Copy(drawlines.Strings[FSelEndNo], FSelEndOffs,length(drawlines.Strings[FSelEndNo]));
           Lines.Strings[TDrawLineInfo(DrawLines.Objects[FSelEndNo]).LineNo] := drawlines.Strings[FSelEndNo];
+          dec(FSelEndOffs);
+          FSelStartOffs:=FSelEndOffs;
         end;
     end;
   VK_LEFT,VK_RIGHT,VK_UP,VK_DOWN:
    begin
 
    end;
+  else
+    inherited KeyDown(Key, Shift);
   end;
 end;
 
@@ -380,13 +386,17 @@ begin
   else
     begin
       drawlines.Strings[FSelStartNo] := copy(drawlines.Strings[FSelStartNo],1,FSelStartOffs);
+      Lines.Strings[TDrawLineInfo(DrawLines.Objects[FSelStartNo]).LineNo] := drawlines.Strings[FSelStartNo];
       inc(i);
       while i < FSelEndNo do
         begin
+          Lines.Delete(TDrawLineInfo(DrawLines.Objects[i]).LineNo);
           DrawLines.Delete(i);
           dec(FSelEndNo);
         end;
       drawlines.Strings[FSelEndNo] := copy(drawlines.Strings[FSelEndNo],FSelEndOffs,length(drawlines.Strings[FSelEndNo]));
+      Lines.Strings[TDrawLineInfo(DrawLines.Objects[FSelEndNo]).LineNo] := drawlines.Strings[FSelStartNo];
+      Format;
     end;
   FSelEndNo := FSelStartNo;
   FSelEndOffs:=FSelStartOffs;
@@ -548,21 +558,6 @@ begin
   Deselect;
   if not ShareContents then begin
       lines.BeginUpdate;
-      for i:=0 to lines.Count-1 do begin
-        if TParagraphInfo(lines.objects[i]) is TPictureParagraph then { image}
-          begin
-            TParagraphInfo(lines.objects[i]).gr.Free;
-            TParagraphInfo(lines.objects[i]).gr := nil;
-          end;
-        if TParagraphInfo(lines.objects[i]) is TControlParagraph then {control}
-          begin
-            RemoveControl(TControl(TParagraphInfo(lines.objects[i]).gr));
-            TParagraphInfo(lines.objects[i]).gr.Free;
-            TParagraphInfo(lines.objects[i]).gr := nil;
-          end;
-        TParagraphInfo(lines.objects[i]).Free;
-        lines.objects[i] := nil;
-      end;
       lines.Clear;
       lines.EndUpdate;
   end;

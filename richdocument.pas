@@ -16,11 +16,15 @@ const
   rvsBullet     = -6;
 
 type
+
+  { TParagraphInfo }
+
   TParagraphInfo = class
      SameAsPrev: Boolean;
      Center: Boolean;
      imgNo: Integer; { for rvsJump# used as jump id }
      gr: TPersistent;
+     destructor Destroy; override;
   end;
   TParagraphClass = class of TParagraphInfo;
   TTextParagraph = class(TParagraphInfo)
@@ -53,11 +57,20 @@ type
     procedure SetFilename(AValue: string);
   public
     procedure Open;virtual;abstract;
+    procedure Delete(Index: Integer); override;
     function AsString : string;virtual;
     property FileName : string read FFilename write SetFilename;
   end;
 
 implementation
+
+{ TParagraphInfo }
+
+destructor TParagraphInfo.Destroy;
+begin
+  if Assigned(gr) then FreeAndNil(gr);
+  inherited Destroy;
+end;
 
 { TCustomRichDocument }
 
@@ -65,6 +78,16 @@ procedure TCustomRichDocument.SetFilename(AValue: string);
 begin
   if FFilename=AValue then Exit;
   FFilename:=AValue;
+end;
+
+procedure TCustomRichDocument.Delete(Index: Integer);
+begin
+  if Assigned(Objects[Index]) then
+    begin
+      Objects[Index].Free;
+      Objects[Index] := nil;
+    end;
+  inherited Delete(Index);
 end;
 
 function TCustomRichDocument.AsString: string;

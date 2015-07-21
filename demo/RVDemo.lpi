@@ -57,6 +57,7 @@
         <ComponentName Value="frmBackStyle"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+        <UnitName Value="BackStyl"/>
       </Unit2>
       <Unit3>
         <Filename Value="PrintFrm.pas"/>
@@ -64,6 +65,7 @@
         <ComponentName Value="frmPrint"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+        <UnitName Value="PrintFrm"/>
       </Unit3>
     </Units>
   </ProjectOptions>
