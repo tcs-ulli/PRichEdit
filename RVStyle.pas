@@ -208,12 +208,10 @@ var fi: TFontInfo;
 begin
   inherited Create(AOwner);
   FFullRedraw := False;  
-  {$IFDEF FPC}
-  Screen.Cursors[crJump] := crHandPoint;
-  {$ELSE}
+  {$IFNDEF FPC}
   Screen.Cursors[crJump] := LoadCursor(hInstance,'RV_JUMP_CURSOR');
   {$ENDIF}
-  FCursor := crJump;
+  FCursor := crHandPoint;
   FColor := clWindow;
   FHoverColor := clNone;
   FSelColor := clHighlight;

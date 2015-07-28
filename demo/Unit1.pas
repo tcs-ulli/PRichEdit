@@ -7,10 +7,12 @@ interface
 uses
   SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   RVStyle, RichView, ExtCtrls, StdCtrls, ComCtrls, RVScroll, PtblRV, Menus,
-  ImgList, Buttons, LResources, LCLType;
+  ImgList, Buttons, LResources, LCLType,richdocument;
 
 type
   TForm1 = class(TForm)
+    Button1: TButton;
+    ListBox1: TListBox;
     RVStyle1: TRVStyle;
     Image1: TImage;
     Image2: TImage;
@@ -26,6 +28,7 @@ type
     N1: TMenuItem;
     mitCopy: TMenuItem;
     mitSelectAll: TMenuItem;
+    procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure RichView1Jump(Sender: TObject; id: Integer);
     procedure RichView1RVMouseMove(Sender: TObject; id: Integer);
@@ -93,10 +96,18 @@ begin
          for no particular reason}
   {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
   with RichView1 do begin
-     AddCenterLine('TRichView Demo and Help Program', rvsHeading);
+    AddText('In order to use TRichView control,          you need to define '+
+      'text styles for it. All properties for customizing TRichView control are '+
+      'concentrated in TRVStyle control. You should create such control '+
+      '(let its Name is RVStyle1) and assign it to Style property of one or more of '+
+      'your TRichView controls (at design or run  time):', rvsNormal);
+
+    {
+
+     AddCenterLine('TRichView Demo and Help Program',rvsHeading);
      Self.RemoveControl(Image1);
      AddControl(Image1, True);
-     AddCenterLine('(Copyright(c) 1997,98 by Tkachenko S.V.)', rvsNormal);
+     AddCenterLine('(Copyright(c) 1997,98 by Tkachenko S.V.)',rvsNormal);
      AddCenterLine('Contents', rvsSubHeading);
      AddBullet(0, ImageList1, True);
      Add('    1.   ', rvsNormal);  Add('Introduction', rvsJump1); // jump#0
@@ -796,6 +807,9 @@ begin
      AddBreak;
      AddHotSpot(1, ImageList1, True); // jump#21
      Add(' Contents (go to first hypertext link)', rvsNormal);
+
+     }
+
   end;
   {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
   RichView1.Format;
@@ -812,6 +826,12 @@ begin
     RichView1.Format;
    }
 end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+  ListBox1.Items.Assign(RichView1.Lines);
+end;
+
 {------------------------------------------------------------------}
 // id0 - jump Id (from 0, not from RichView1.FirstJumpNo)
 // Returns the checkpoint index
@@ -854,15 +874,11 @@ begin
             SaveDialog1.DefaultExt := 'txt';
             SaveDialog1.Title := 'Save text file';
             SaveDialog1.Filter := 'Text Files|*.txt';
-            if SaveDialog1.Execute then
-              RichView1.SaveText(SaveDialog1.FileName, 65);
           end;
       18: begin
             SaveDialog1.DefaultExt := 'htm';
             SaveDialog1.Title := 'Save HTML File';
             SaveDialog1.Filter := 'HTML files|*.htm;*.html';
-            if SaveDialog1.Execute then
-              RichView1.SaveHTML(SaveDialog1.FileName,'TRichView Help', 'rvimg', [rvsoOverrideImages]);
           end;
       21: ScrollTo(GetJumpPointY(FirstJumpNo));
     end;

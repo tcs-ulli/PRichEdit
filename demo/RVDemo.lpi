@@ -5,11 +5,12 @@
     <PathDelim Value="\"/>
     <General>
       <Flags>
-        <SaveClosedFiles Value="False"/>
         <SaveOnlyProjectUnits Value="True"/>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
+      <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
+      <ResourceType Value="res"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -23,7 +24,7 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+        <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
     <RequiredPackages Count="3">
@@ -41,8 +42,6 @@
       <Unit0>
         <Filename Value="RVDemo.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="15" Y="5"/>
-        <UsageCount Value="30"/>
       </Unit0>
       <Unit1>
         <Filename Value="Unit1.pas"/>
@@ -51,11 +50,6 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
-        <TopLine Value="59"/>
-        <CursorPos X="14" Y="929"/>
-        <UsageCount Value="30"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="BackStyl.pas"/>
@@ -63,12 +57,6 @@
         <ComponentName Value="frmBackStyle"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="BackStyl"/>
-        <EditorIndex Value="3"/>
-        <CursorPos X="26" Y="22"/>
-        <UsageCount Value="30"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="PrintFrm.pas"/>
@@ -76,12 +64,6 @@
         <ComponentName Value="frmPrint"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="PrintFrm"/>
-        <EditorIndex Value="2"/>
-        <CursorPos X="20"/>
-        <UsageCount Value="30"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
       </Unit3>
     </Units>
   </ProjectOptions>
@@ -104,27 +86,4 @@
       </Options>
     </Linking>
   </CompilerOptions>
-  <Debugging>
-    <Watches Count="5">
-      <Item1>
-        <Expression Value="FieldDef.FDataType"/>
-        <Enabled Value="False"/>
-      </Item1>
-      <Item2>
-        <Expression Value="FieldDef.FSize"/>
-        <Enabled Value="False"/>
-      </Item2>
-      <Item3>
-        <Expression Value="IsSeq"/>
-        <Enabled Value="False"/>
-      </Item3>
-      <Item4>
-        <Expression Value="TIBCURSOR(CURSOR).SQLDA^"/>
-        <Enabled Value="False"/>
-      </Item4>
-      <Item5>
-        <Expression Value="x"/>
-      </Item5>
-    </Watches>
-  </Debugging>
 </CONFIG>
