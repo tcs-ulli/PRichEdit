@@ -11,6 +11,8 @@ uses
 
 type
   TForm1 = class(TForm)
+    Button1: TButton;
+    ListBox1: TListBox;
     RVStyle1: TRVStyle;
     Image1: TImage;
     Image2: TImage;
@@ -26,6 +28,7 @@ type
     N1: TMenuItem;
     mitCopy: TMenuItem;
     mitSelectAll: TMenuItem;
+    procedure Button1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure RichView1Jump(Sender: TObject; id: Integer);
     procedure RichView1RVMouseMove(Sender: TObject; id: Integer);
@@ -93,6 +96,14 @@ begin
          for no particular reason}
   {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
   with RichView1 do begin
+    AddText('In order to use TRichView control,          you need to define '+
+      'text styles for it. All properties for customizing TRichView control are '+
+      'concentrated in TRVStyle control. You should create such control '+
+      '(let its Name is RVStyle1) and assign it to Style property of one or more of '+
+      'your TRichView controls (at design or run  time):', rvsNormal);
+
+    {
+
      AddCenterLine('TRichView Demo and Help Program',rvsHeading);
      Self.RemoveControl(Image1);
      AddControl(Image1, True);
@@ -796,6 +807,9 @@ begin
      AddBreak;
      AddHotSpot(1, ImageList1, True); // jump#21
      Add(' Contents (go to first hypertext link)', rvsNormal);
+
+     }
+
   end;
   {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
   RichView1.Format;
@@ -812,6 +826,12 @@ begin
     RichView1.Format;
    }
 end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+  ListBox1.Items.Assign(RichView1.Lines);
+end;
+
 {------------------------------------------------------------------}
 // id0 - jump Id (from 0, not from RichView1.FirstJumpNo)
 // Returns the checkpoint index

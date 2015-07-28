@@ -290,25 +290,31 @@ begin
   canv := Canvas;
   if FCursorVisible then
     begin
-      if FSelEndNo<0 then exit;
-      dli := TDrawLineInfo(DrawLines.Objects[FSelEndNo]);
-      li := TParagraphInfo(lines.Objects[dli.LineNo]);
-      VOffs := VPos*SmallStep;
-      HOffs := HPos*SmallStep;
-      HinnerOffs := 0;
-      if FSelEndOffs>0 then
+      if FSelEndNo<0 then
         begin
-          if li is TTextParagraph then begin { text }
-            canv.Font.Style := FStyle.TextStyles[TTextParagraph(li).StyleNo].Style;
-            canv.Font.Size := FStyle.TextStyles[TTextParagraph(li).StyleNo].Size;
-            canv.Font.Name := FStyle.TextStyles[TTextParagraph(li).StyleNo].FontName;
-            {$IFDEF RICHVIEWDEF3}
-            canv.Font.CharSet := FStyle.TextStyles[TTextParagraph(li).StyleNo].CharSet;
-            {$ENDIF}
-            HinnerOffs := canv.TextExtent(Copy(drawlines.Strings[FSelEndNo], 1, FSelEndOffs-1)).cx;
-          end;
+          Canvas.Rectangle(0,0,2,canv.TextExtent('A').cy);
+        end
+      else
+        begin
+          dli := TDrawLineInfo(DrawLines.Objects[FSelEndNo]);
+          li := TParagraphInfo(lines.Objects[dli.LineNo]);
+          VOffs := VPos*SmallStep;
+          HOffs := HPos*SmallStep;
+          HinnerOffs := 0;
+          if FSelEndOffs>0 then
+            begin
+              if li is TTextParagraph then begin { text }
+                canv.Font.Style := FStyle.TextStyles[TTextParagraph(li).StyleNo].Style;
+                canv.Font.Size := FStyle.TextStyles[TTextParagraph(li).StyleNo].Size;
+                canv.Font.Name := FStyle.TextStyles[TTextParagraph(li).StyleNo].FontName;
+                {$IFDEF RICHVIEWDEF3}
+                canv.Font.CharSet := FStyle.TextStyles[TTextParagraph(li).StyleNo].CharSet;
+                {$ENDIF}
+                HinnerOffs := canv.TextExtent(Copy(drawlines.Strings[FSelEndNo], 1, FSelEndOffs-1)).cx;
+              end;
+            end;
+          Canvas.Rectangle(dli.Left+HinnerOffs-HOffs,dli.Top-VOffs,(dli.Left+2+HinnerOffs)-HOffs,(dli.Top-VOffs)+dli.Height);
         end;
-      Canvas.Rectangle(dli.Left+HinnerOffs-HOffs,dli.Top-VOffs,(dli.Left+2+HinnerOffs)-HOffs,(dli.Top-VOffs)+dli.Height);
     end;
 end;
 
@@ -343,21 +349,50 @@ begin
 end;
 
 procedure TRichEdit.KeyPress(var Key: char);
+var
+  aPara: TTextParagraph;
+  tmp: String;
 begin
   inherited KeyPress(Key);
   if ord(Key) in [VK_SHIFT, VK_CONTROL, VK_MENU,
              VK_LSHIFT, VK_LCONTROL, VK_LMENU,
              VK_RSHIFT, VK_RCONTROL, VK_RMENU,
-             VK_LWIN, VK_RWIN,VK_RETURN,VK_TAB,
-             VK_BACK,VK_LEFT,VK_UP,VK_RIGHT,VK_DOWN]
+             VK_LWIN, VK_RWIN,VK_BACK,VK_LEFT,VK_UP,VK_RIGHT,VK_DOWN]
   then
     exit;
-  if FSelEndNo<0 then exit;
-  DeleteSelectedContent;
-  drawlines.Strings[FSelEndNo] := Copy(drawlines.Strings[FSelEndNo], 1, FSelEndOffs-1)+Key+Copy(drawlines.Strings[FSelEndNo], FSelEndOffs,length(drawlines.Strings[FSelEndNo]));
-  Lines.Strings[TDrawLineInfo(DrawLines.Objects[FSelEndNo]).LineNo] := drawlines.Strings[FSelEndNo];
-  inc(FSelEndOffs);
-  FSelStartOffs:=FSelEndOffs;
+  if FSelEndNo<0 then
+    begin
+      aPara := TTextParagraph.Create;
+      aPara.StyleNo:=0;
+      FSelStartNo := Lines.AddObject(Key,aPara);
+      FSelEndNo := FSelStartNo;
+      FSelEndOffs:=1;
+      FSelStartOffs:=FSelEndOffs;
+      drawlines.AddObject(Lines[FSelStartNo],TDrawLineInfo.Create);
+      Format;
+    end
+  else
+    begin
+      DeleteSelectedContent;
+      tmp := drawlines.Strings[FSelEndNo];
+      if Key = #13 then
+        begin
+          aPara := TTextParagraph.Create;
+          if Lines.Objects[FSelEndNo] is TTextParagraph then
+            aPara.StyleNo:=TTextParagraph(Lines.Objects[FSelEndNo]).StyleNo;
+          Lines.InsertObject(TDrawLineInfo(DrawLines.Objects[FSelEndNo]).LineNo,Copy(tmp, 1, FSelEndOffs-1),aPara);
+          drawlines.InsertObject(FSelEndNo,Copy(tmp, 1, FSelEndOffs-1),aPara);
+          tmp := Copy(tmp, FSelEndOffs,length(tmp));
+          FSelEndNo:=FSelEndNo+1;
+          Lines[TDrawLineInfo(DrawLines.Objects[FSelEndNo]).LineNo] := tmp;
+        end
+      else
+        tmp := Copy(tmp, 1, FSelEndOffs-1)+Key+Copy(tmp, FSelEndOffs,length(tmp));
+      drawlines.Strings[FSelEndNo] := tmp;
+      Lines.Strings[TDrawLineInfo(DrawLines.Objects[FSelEndNo]).LineNo] := drawlines.Strings[FSelEndNo];
+      inc(FSelEndOffs);
+      FSelStartOffs:=FSelEndOffs;
+    end;
   Invalidate;
 end;
 

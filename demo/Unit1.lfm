@@ -2,14 +2,14 @@ object Form1: TForm1
   Left = 309
   Height = 515
   Top = 274
-  Width = 740
+  Width = 1217
   HorzScrollBar.Page = 434
   VertScrollBar.Increment = 12
   VertScrollBar.Page = 299
   ActiveControl = RichView1
   Caption = 'TRichView, TRVStyle and TRVPrint'
   ClientHeight = 515
-  ClientWidth = 740
+  ClientWidth = 1217
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
@@ -171,7 +171,7 @@ object Form1: TForm1
     Left = 0
     Height = 23
     Top = 492
-    Width = 740
+    Width = 1217
     Panels = <>
     SimplePanel = False
   end
@@ -179,7 +179,7 @@ object Form1: TForm1
     Left = 0
     Height = 492
     Top = 0
-    Width = 740
+    Width = 912
     TabStop = True
     TabOrder = 0
     Align = alClient
@@ -1041,6 +1041,25 @@ object Form1: TForm1
     Delimiters = ' .;,:(){}"'
     AllowSelection = True
     SingleClick = False
+  end
+  object ListBox1: TListBox
+    Left = 912
+    Height = 492
+    Top = 0
+    Width = 305
+    Align = alRight
+    ItemHeight = 0
+    TabOrder = 2
+  end
+  object Button1: TButton
+    Left = 1136
+    Height = 25
+    Top = 8
+    Width = 75
+    Anchors = [akTop, akRight]
+    Caption = 'Fill'
+    OnClick = Button1Click
+    TabOrder = 3
   end
   object RVStyle1: TRVStyle
     TextStyles = <    
